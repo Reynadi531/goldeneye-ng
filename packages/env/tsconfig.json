@@ -1,0 +1,3 @@
+{
+  "extends": "@goldeneye-ng/config/tsconfig.base.json"
+}

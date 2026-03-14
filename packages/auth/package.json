@@ -1,0 +1,24 @@
+{
+  "name": "@goldeneye-ng/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@goldeneye-ng/db": "workspace:*",
+    "@goldeneye-ng/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@goldeneye-ng/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

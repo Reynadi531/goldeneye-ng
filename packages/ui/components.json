@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-lyra",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@goldeneye-ng/ui/components",
+    "utils": "@goldeneye-ng/ui/lib/utils",
+    "hooks": "@goldeneye-ng/ui/hooks",
+    "lib": "@goldeneye-ng/ui/lib",
+    "ui": "@goldeneye-ng/ui/components"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "registries": {}
+}
