@@ -13,10 +13,12 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "bun run seed.ts"
   },
   "dependencies": {
     "@goldeneye-ng/env": "workspace:*",
+    "@node-rs/argon2": "^2.0.2",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.17.1",

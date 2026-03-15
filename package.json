@@ -32,6 +32,9 @@
     "db:studio": "turbo -F @goldeneye-ng/db db:studio",
     "db:generate": "turbo -F @goldeneye-ng/db db:generate",
     "db:migrate": "turbo -F @goldeneye-ng/db db:migrate",
+    "db:seed": "turbo -F server db:seed",
+    "docker:db": "docker compose up -d",
+    "docker:db:stop": "docker compose down",
     "check": "oxlint && oxfmt --write"
   },
   "dependencies": {

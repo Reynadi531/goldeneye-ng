@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@goldeneye-ng/ui/components/dropdown-menu";
 import { Skeleton } from "@goldeneye-ng/ui/components/skeleton";
+import { ShieldCheck, User, LogOut, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
@@ -29,16 +30,40 @@ export default function UserMenu() {
     );
   }
 
+  const isAdmin = (session.user as { role?: string }).role === "admin";
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" className="gap-2">
+            {isAdmin ? (
+              <ShieldCheck className="w-4 h-4 text-yellow-500" />
+            ) : (
+              <User className="w-4 h-4" />
+            )}
+            {session.user.name}
+          </Button>
+        }
+      ></DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="flex items-center gap-2">
+            {isAdmin && <ShieldCheck className="w-4 h-4 text-yellow-500" />}
+            {session.user.email}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          {isAdmin && (
+            <>
+              <DropdownMenuItem>
+                <Link to="/admin" className="flex items-center gap-2 w-full cursor-pointer">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Admin Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
@@ -53,6 +78,7 @@ export default function UserMenu() {
               });
             }}
           >
+            <LogOut className="w-4 h-4 mr-2" />
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuGroup>
