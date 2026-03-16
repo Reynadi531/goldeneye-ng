@@ -14,10 +14,11 @@ COPY apps/server ./apps/server
 
 RUN bun run build --filter=server
 
-FROM oven/bun:1.3.10-alpine
+FROM oven/bun:1.3.10-alpine AS runtime
 
 WORKDIR /app
 
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/server/dist ./dist
 
 EXPOSE 3000
