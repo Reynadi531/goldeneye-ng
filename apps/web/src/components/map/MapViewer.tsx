@@ -22,8 +22,7 @@ interface MapViewerProps {
   onMineClick?: (mine: MineData) => void;
 }
 
-const satelliteUrl =
-  "http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}";
+const satelliteUrl = "http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}";
 const streetUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 // Fits the map viewport to all feature bounds whenever the mines list changes.
@@ -62,7 +61,12 @@ export default function MapViewer({ mines, onMineClick }: MapViewerProps) {
 
   return (
     <div className="relative w-full h-full">
-      <MapContainer center={[-3.4653, -62.2159]} zoom={6} className="w-full h-full" zoomControl={false}>
+      <MapContainer
+        center={[-3.4653, -62.2159]}
+        zoom={6}
+        className="w-full h-full"
+        zoomControl={false}
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
           url={baseMap === "satellite" ? satelliteUrl : streetUrl}
@@ -101,7 +105,9 @@ export default function MapViewer({ mines, onMineClick }: MapViewerProps) {
                         </p>
                       )}
                       {mine.detectedDate && (
-                        <p className="text-xs text-muted-foreground">Detected: {mine.detectedDate}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Detected: {mine.detectedDate}
+                        </p>
                       )}
                     </div>
                   </Popup>

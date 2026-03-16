@@ -1,10 +1,13 @@
 import { auth } from "@goldeneye-ng/auth";
+import { cache } from "@goldeneye-ng/cache";
 import { db, eq } from "@goldeneye-ng/db";
 import { mineLayer, mineFeature } from "@goldeneye-ng/db/schema/mines";
 import { env } from "@goldeneye-ng/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+
+const LAYERS_CACHE_KEY = "layers:all";
 
 const app = new Hono();
 
@@ -25,6 +28,15 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 // GET /api/layers — list all layers with their features nested
 app.get("/api/layers", async (c) => {
+  const cached = await cache.get<
+    Array<
+      typeof mineLayer.$inferSelect & {
+        features: (typeof mineFeature.$inferSelect)[];
+      }
+    >
+  >(LAYERS_CACHE_KEY);
+  if (cached) return c.json(cached);
+
   const layers = await db.select().from(mineLayer).orderBy(mineLayer.importedAt);
   const features = await db.select().from(mineFeature).orderBy(mineFeature.importedAt);
 
@@ -32,6 +44,8 @@ app.get("/api/layers", async (c) => {
     ...layer,
     features: features.filter((f) => f.layerId === layer.id),
   }));
+
+  await cache.set(LAYERS_CACHE_KEY, result);
 
   return c.json(result);
 });
@@ -89,6 +103,8 @@ app.post("/api/layers", async (c) => {
 
   await db.insert(mineFeature).values(featureRows).onConflictDoNothing();
 
+  await cache.del(LAYERS_CACHE_KEY);
+
   return c.json({ layerId, inserted: featureRows.length });
 });
 
@@ -101,6 +117,9 @@ app.delete("/api/layers/:id", async (c) => {
 
   const id = c.req.param("id");
   await db.delete(mineLayer).where(eq(mineLayer.id, id));
+
+  await cache.del(LAYERS_CACHE_KEY);
+
   return c.json({ deleted: id });
 });
 

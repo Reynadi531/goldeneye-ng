@@ -1,5 +1,14 @@
 import { useState, useRef } from "react";
-import { Layers, Eye, EyeOff, ChevronDown, ChevronRight, MapPin, Pentagon, Palette } from "lucide-react";
+import {
+  Layers,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronRight,
+  MapPin,
+  Pentagon,
+  Palette,
+} from "lucide-react";
 import { Checkbox } from "@goldeneye-ng/ui/components/checkbox";
 import { Button } from "@goldeneye-ng/ui/components/button";
 
@@ -34,13 +43,7 @@ const PRESET_COLORS = [
   "#ffffff", // white
 ];
 
-function ColorPicker({
-  color,
-  onChange,
-}: {
-  color: string;
-  onChange: (c: string) => void;
-}) {
+function ColorPicker({ color, onChange }: { color: string; onChange: (c: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -142,11 +145,9 @@ export default function LayerPanel({
   const [styleOpen, setStyleOpen] = useState<Record<string, boolean>>({});
   const allVisible = layers.length > 0 && layers.every((l) => l.visible);
 
-  const toggleCollapsed = (id: string) =>
-    setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleCollapsed = (id: string) => setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const toggleStyleOpen = (id: string) =>
-    setStyleOpen((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleStyleOpen = (id: string) => setStyleOpen((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="bg-background/95 backdrop-blur border rounded-lg shadow-lg w-64 overflow-hidden">
@@ -219,9 +220,7 @@ export default function LayerPanel({
                 </span>
 
                 {/* Feature count */}
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {layer.featureCount}
-                </span>
+                <span className="text-xs text-muted-foreground shrink-0">{layer.featureCount}</span>
               </div>
 
               {/* Style panel (color + opacity) */}

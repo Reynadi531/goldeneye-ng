@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@goldeneye-ng/auth": "workspace:*",
+    "@goldeneye-ng/cache": "workspace:*",
     "@goldeneye-ng/db": "workspace:*",
     "@goldeneye-ng/env": "workspace:*",
     "@hono/node-server": "^1.19.11",

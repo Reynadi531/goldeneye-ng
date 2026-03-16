@@ -93,11 +93,8 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
         } else if (feature.geometry.type === "MultiPolygon") {
           type = "polygon";
           // Flatten all polygons' rings so Leaflet renders every sub-polygon
-          coordinates = feature.geometry.coordinates.flatMap(
-            (polygon: number[][][]) =>
-              polygon.map((ring: number[][]) =>
-                ring.map((c) => [c[1], c[0]] as [number, number]),
-              ),
+          coordinates = feature.geometry.coordinates.flatMap((polygon: number[][][]) =>
+            polygon.map((ring: number[][]) => ring.map((c) => [c[1], c[0]] as [number, number])),
           );
           const firstRing = feature.geometry.coordinates[0]?.[0];
           if (firstRing && firstRing.length > 0) {
@@ -142,9 +139,7 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
       toast.success(`Saved ${inserted} features to layer "${layerName.trim()}"`);
     } catch (error) {
       console.error("Error parsing/saving SHP:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to process SHP file.",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to process SHP file.");
       setFiles((prev) => prev.map((f) => ({ ...f, status: "error" as const })));
     } finally {
       setIsProcessing(false);

@@ -34,9 +34,7 @@ export default function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className={buttonVariants({ variant: "outline" })}
-      >
+      <DropdownMenuTrigger className={buttonVariants({ variant: "outline" })}>
         {isAdmin ? (
           <ShieldCheck className="w-4 h-4 text-yellow-500" />
         ) : (
