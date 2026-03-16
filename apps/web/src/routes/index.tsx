@@ -42,13 +42,14 @@ function Index() {
   const [visibleLayerIds, setVisibleLayerIds] = useState<Set<string>>(new Set());
   const [layerStyles, setLayerStyles] = useState<Record<string, LayerStyle>>({});
   const [showLayerPanel, setShowLayerPanel] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     getLayers()
       .then((data) => {
         setLayers(data);
         setVisibleLayerIds(new Set(data.map((l) => l.id)));
-        // Assign a distinct color to each layer
         const styles: Record<string, LayerStyle> = {};
         data.forEach((l, i) => {
           styles[l.id] = {
@@ -58,7 +59,8 @@ function Index() {
         });
         setLayerStyles(styles);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const toggleLayerVisibility = useCallback((id: string) => {
@@ -129,6 +131,14 @@ function Index() {
 
   return (
     <div className="relative w-full h-full overflow-hidden isolate">
+      {isLoading && (
+        <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-muted-foreground">Loading layers...</span>
+          </div>
+        </div>
+      )}
       <MapViewer mines={visibleMines} />
 
       {showLayerPanel && layerGroups.length > 0 && (
