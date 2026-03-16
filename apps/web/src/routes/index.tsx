@@ -24,7 +24,7 @@ interface MineFeature {
   name: string;
   type: "point" | "polygon";
   location: LatLngExpression;
-  coordinates?: LatLngExpression[][];
+  coordinates?: LatLngExpression[];
   properties: Record<string, unknown>;
 }
 
@@ -42,10 +42,8 @@ function Index() {
   const [visibleLayerIds, setVisibleLayerIds] = useState<Set<string>>(new Set());
   const [layerStyles, setLayerStyles] = useState<Record<string, LayerStyle>>({});
   const [showLayerPanel, setShowLayerPanel] = useState(true);
-  const [isLoadingLayers, setIsLoadingLayers] = useState(true);
 
   useEffect(() => {
-    setIsLoadingLayers(true);
     getLayers()
       .then((data) => {
         setLayers(data);
@@ -60,8 +58,7 @@ function Index() {
         });
         setLayerStyles(styles);
       })
-      .catch(console.error)
-      .finally(() => setIsLoadingLayers(false));
+      .catch(console.error);
   }, []);
 
   const toggleLayerVisibility = useCallback((id: string) => {
@@ -105,7 +102,7 @@ function Index() {
         name: f.name,
         type: f.type,
         location: [f.lat, f.lng] as LatLngExpression,
-        coordinates: f.coordinates ? (f.coordinates as LatLngExpression[][]) : undefined,
+        coordinates: f.coordinates ? (f.coordinates as LatLngExpression[]) : undefined,
         properties: f.properties,
         color: style.color,
         opacity: style.opacity,
@@ -134,11 +131,10 @@ function Index() {
     <div className="relative w-full h-full overflow-hidden">
       <MapViewer mines={visibleMines} />
 
-      {showLayerPanel && (isLoadingLayers || layerGroups.length > 0) && (
+      {showLayerPanel && layerGroups.length > 0 && (
         <div className="absolute top-4 left-4 z-[1000]">
           <LayerPanel
             layers={layerGroups}
-            isLoading={isLoadingLayers}
             onToggleLayer={toggleLayerVisibility}
             onToggleAll={toggleAllLayers}
             onColorChange={handleColorChange}
@@ -147,7 +143,7 @@ function Index() {
         </div>
       )}
 
-      {(isLoadingLayers || layerGroups.length > 0) && (
+      {layerGroups.length > 0 && (
         <div className="absolute top-4 right-4 z-[1000]">
           <button
             onClick={() => setShowLayerPanel(!showLayerPanel)}

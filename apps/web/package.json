@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "deploy": "wrangler pages deploy dist --project-name goldeneye-web",
     "serve": "vite preview",
     "start": "vite",
     "check-types": "tsc --noEmit"

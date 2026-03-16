@@ -9,7 +9,7 @@ interface MineData {
   name: string;
   location: LatLngExpression;
   type: "point" | "polygon";
-  coordinates?: LatLngExpression[][];
+  coordinates?: LatLngExpression[];
   description?: string;
   status?: string;
   detectedDate?: string;
@@ -39,11 +39,8 @@ function BoundsController({ mines }: { mines: MineData[] }) {
       if (mine.type === "point") {
         latLngs.push(L.latLng(mine.location as [number, number]));
       } else if (mine.coordinates && mine.coordinates.length > 0) {
-        // coordinates is LatLngExpression[][] — iterate rings, then points
-        for (const ring of mine.coordinates) {
-          for (const c of ring) {
-            latLngs.push(L.latLng(c as [number, number]));
-          }
+        for (const c of mine.coordinates) {
+          latLngs.push(L.latLng(c as [number, number]));
         }
       }
     }

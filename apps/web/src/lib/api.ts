@@ -11,7 +11,7 @@ export interface MineFeatureRow {
   type: "point" | "polygon";
   lat: number;
   lng: number;
-  coordinates: [number, number][][] | null;
+  coordinates: [number, number][] | null;
   properties: Record<string, unknown>;
   importedAt: string;
   importedBy: string;
@@ -23,7 +23,7 @@ export interface MineFeatureInput {
   type: "point" | "polygon";
   lat: number;
   lng: number;
-  coordinates?: [number, number][][];
+  coordinates?: [number, number][];
   properties: Record<string, unknown>;
 }
 

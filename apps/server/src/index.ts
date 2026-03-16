@@ -54,7 +54,7 @@ app.post("/api/layers", async (c) => {
       type: "point" | "polygon";
       lat: number;
       lng: number;
-      coordinates?: [number, number][][];
+      coordinates?: [number, number][];
       properties: Record<string, unknown>;
     }[];
   }>();

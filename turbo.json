@@ -17,10 +17,6 @@
       "cache": false,
       "persistent": true
     },
-    "deploy": {
-      "dependsOn": ["build"],
-      "cache": false
-    },
     "db:seed": {
       "cache": false,
       "persistent": true

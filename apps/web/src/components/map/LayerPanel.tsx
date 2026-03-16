@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Layers, Eye, EyeOff, ChevronDown, ChevronRight, MapPin, Pentagon, Palette, Loader2 } from "lucide-react";
+import { Layers, Eye, EyeOff, ChevronDown, ChevronRight, MapPin, Pentagon, Palette } from "lucide-react";
 import { Checkbox } from "@goldeneye-ng/ui/components/checkbox";
 import { Button } from "@goldeneye-ng/ui/components/button";
 
@@ -16,7 +16,6 @@ export interface LayerGroup {
 
 interface LayerPanelProps {
   layers: LayerGroup[];
-  isLoading?: boolean;
   onToggleLayer: (id: string) => void;
   onToggleAll?: (visible: boolean) => void;
   onColorChange: (id: string, color: string) => void;
@@ -134,7 +133,6 @@ function OpacitySlider({
 
 export default function LayerPanel({
   layers,
-  isLoading = false,
   onToggleLayer,
   onToggleAll,
   onColorChange,
@@ -155,12 +153,8 @@ export default function LayerPanel({
       <div className="flex items-center gap-2 px-3 py-2 border-b">
         <Layers className="w-4 h-4" />
         <span className="text-sm font-medium">Layers</span>
-        {isLoading ? (
-          <Loader2 className="w-3 h-3 animate-spin text-muted-foreground ml-1" />
-        ) : (
-          <span className="ml-1 text-xs text-muted-foreground">({layers.length})</span>
-        )}
-        {onToggleAll && layers.length > 0 && !isLoading && (
+        <span className="ml-1 text-xs text-muted-foreground">({layers.length})</span>
+        {onToggleAll && layers.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
@@ -174,30 +168,13 @@ export default function LayerPanel({
       </div>
 
       <div className="p-1 max-h-[32rem] overflow-y-auto">
-        {isLoading && (
-          <div className="space-y-1 px-2 py-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-2 py-1.5 animate-pulse">
-                <div className="w-3 h-3 rounded-sm bg-muted-foreground/20" />
-                <div className="w-3.5 h-3.5 rounded bg-muted-foreground/20" />
-                <div className="w-3.5 h-3.5 rounded-sm bg-muted-foreground/20" />
-                <div
-                  className="h-3 rounded bg-muted-foreground/20 flex-1"
-                  style={{ width: `${55 + i * 12}%` }}
-                />
-                <div className="w-4 h-3 rounded bg-muted-foreground/20" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!isLoading && layers.length === 0 && (
+        {layers.length === 0 && (
           <p className="text-xs text-muted-foreground px-2 py-4 text-center">
             No layers loaded. Import SHP files to add data.
           </p>
         )}
 
-        {!isLoading && layers.map((layer) => {
+        {layers.map((layer) => {
           const isCollapsed = collapsed[layer.id];
           const isStyleOpen = styleOpen[layer.id];
 
