@@ -11,16 +11,20 @@ WORKDIR /app
 ARG VITE_SERVER_URL
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
-# Copy manifests first for better layer caching
+# Copy manifests first for better layer caching.
+# All workspace package.json files must be present before `bun install` so
+# Bun can resolve the full workspace graph (it errors on any missing member).
 COPY package.json bun.lock turbo.json tsconfig.json ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/ui/package.json ./packages/ui/
-COPY packages/auth/package.json ./packages/auth/
-COPY packages/env/package.json ./packages/env/
+COPY apps/web/package.json    ./apps/web/
+COPY apps/server/package.json ./apps/server/
+COPY packages/auth/package.json   ./packages/auth/
+COPY packages/db/package.json     ./packages/db/
+COPY packages/env/package.json    ./packages/env/
+COPY packages/ui/package.json     ./packages/ui/
 COPY packages/config/package.json ./packages/config/
 
 # Install all workspace dependencies
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy all source
 COPY apps/web/ ./apps/web/
