@@ -24,7 +24,7 @@ COPY packages/ui/package.json     ./packages/ui/
 COPY packages/config/package.json ./packages/config/
 
 # Install all workspace dependencies
-RUN bun install
+RUN bun install --frozen-lockfile
 
 # Copy all source
 COPY apps/web/ ./apps/web/
