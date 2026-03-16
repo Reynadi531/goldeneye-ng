@@ -64,7 +64,7 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
 
         let lat = 0;
         let lng = 0;
-        let coordinates: [number, number][] | undefined;
+        let coordinates: [number, number][][] | undefined;
         let type: "point" | "polygon" = "point";
 
         if (feature.geometry.type === "Point") {
@@ -79,19 +79,33 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
             lng = coords[0][0];
             lat = coords[0][1];
           }
-        } else if (
-          feature.geometry.type === "Polygon" ||
-          feature.geometry.type === "MultiPolygon"
-        ) {
+        } else if (feature.geometry.type === "Polygon") {
           type = "polygon";
-          const coords =
-            feature.geometry.type === "Polygon"
-              ? feature.geometry.coordinates[0]
-              : feature.geometry.coordinates[0][0];
-          coordinates = coords.map((c: number[]) => [c[1], c[0]]);
-          if (coords.length > 0) {
-            lng = coords[0][0];
-            lat = coords[0][1];
+          // Store all rings (exterior + holes) as [lat, lng] pairs
+          coordinates = feature.geometry.coordinates.map((ring: number[][]) =>
+            ring.map((c) => [c[1], c[0]] as [number, number]),
+          );
+          // Use centroid of first ring for the lat/lng anchor
+          const exterior = feature.geometry.coordinates[0];
+          if (exterior && exterior.length > 0) {
+            lng = exterior[0][0];
+            lat = exterior[0][1];
+          }
+        } else if (feature.geometry.type === "MultiPolygon") {
+          type = "polygon";
+          // Flatten all polygons' exterior rings into one multi-ring set.
+          // Each sub-polygon's rings become separate entries so Leaflet can
+          // render them all via a single <Polygon positions={rings} />.
+          coordinates = feature.geometry.coordinates.flatMap(
+            (polygon: number[][][]) =>
+              polygon.map((ring: number[][]) =>
+                ring.map((c) => [c[1], c[0]] as [number, number]),
+              ),
+          );
+          const firstRing = feature.geometry.coordinates[0]?.[0];
+          if (firstRing && firstRing.length > 0) {
+            lng = firstRing[0][0];
+            lat = firstRing[0][1];
           }
         }
 

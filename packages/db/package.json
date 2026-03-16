@@ -21,12 +21,12 @@
     "@node-rs/argon2": "^2.0.2",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
-    "pg": "^8.17.1",
+    "pg": "^8.13.3",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@goldeneye-ng/config": "workspace:*",
-    "@types/pg": "^8.16.0",
+    "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.31.8",
     "typescript": "^5"
   }

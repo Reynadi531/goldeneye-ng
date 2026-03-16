@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Database,
   Calendar,
+  Loader2,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getLayers, deleteLayer, type LayerWithFeatures } from "@/lib/api";
@@ -57,15 +58,18 @@ function AdminDashboard() {
   const [layers, setLayers] = useState<LayerWithFeatures[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [showUploader, setShowUploader] = useState(false);
+  const [isLoadingLayers, setIsLoadingLayers] = useState(true);
   const [activities, setActivities] = useState<
     { id: string; action: string; detail: string; timestamp: Date }[]
   >([]);
 
   // Load layers from DB on mount
   useEffect(() => {
+    setIsLoadingLayers(true);
     getLayers()
       .then(setLayers)
-      .catch(() => toast.error("Failed to load layer data"));
+      .catch(() => toast.error("Failed to load layer data"))
+      .finally(() => setIsLoadingLayers(false));
   }, []);
 
   const handleDataLoaded = useCallback((layer: LayerWithFeatures) => {
@@ -180,10 +184,18 @@ function AdminDashboard() {
                   <Layers className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalLayers}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.totalFeatures} total features
-                  </p>
+                  {isLoadingLayers ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold">{stats.totalLayers}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {stats.totalFeatures} total features
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -193,10 +205,18 @@ function AdminDashboard() {
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalFeatures}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.points} points, {stats.polygons} polygons
-                  </p>
+                  {isLoadingLayers ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold">{stats.totalFeatures}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {stats.points} points, {stats.polygons} polygons
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -206,8 +226,16 @@ function AdminDashboard() {
                   <MapPin className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{stats.points}</div>
-                  <p className="text-xs text-muted-foreground">Point locations</p>
+                  {isLoadingLayers ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold">{stats.points}</div>
+                      <p className="text-xs text-muted-foreground">Point locations</p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -217,8 +245,16 @@ function AdminDashboard() {
                   <Pentagon className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{stats.polygons}</div>
-                  <p className="text-xs text-muted-foreground">Mining areas</p>
+                  {isLoadingLayers ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold">{stats.polygons}</div>
+                      <p className="text-xs text-muted-foreground">Mining areas</p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -304,7 +340,24 @@ function AdminDashboard() {
               </Button>
             </div>
 
-            {layers.length === 0 ? (
+            {isLoadingLayers ? (
+              <div className="grid gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="flex items-center justify-between py-4">
+                      <div className="flex items-center gap-4 flex-1 animate-pulse">
+                        <div className="w-10 h-10 rounded-lg bg-muted" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-muted rounded w-1/3" />
+                          <div className="h-3 bg-muted rounded w-1/2" />
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : layers.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Layers className="w-12 h-12 text-muted-foreground mb-4" />

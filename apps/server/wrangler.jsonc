@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "goldeneye-server",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  // nodejs_compat provides Web Crypto, TextEncoder, etc. used by better-auth
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ---------------------------------------------------------------------------
+  // Non-secret environment variables — safe to commit
+  // These are overridden per environment below (see [env.production])
+  // ---------------------------------------------------------------------------
+  "vars": {
+    "BETTER_AUTH_URL": "http://localhost:8787",
+    "CORS_ORIGIN": "http://localhost:3001",
+    "NODE_ENV": "development"
+  },
+
+  // ---------------------------------------------------------------------------
+  // Secrets — DO NOT add values here. Set them with:
+  //   wrangler secret put DATABASE_URL       --env production
+  //   wrangler secret put BETTER_AUTH_SECRET --env production
+  // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // Production environment
+  // ---------------------------------------------------------------------------
+  "env": {
+    "production": {
+      "vars": {
+        // Replace with your deployed worker URL (assigned after first deploy)
+        "BETTER_AUTH_URL": "https://goldeneye-api.reynadi.cloud",
+        // Replace with your CF Pages URL or custom domain
+        "CORS_ORIGIN": "https://goldeneye-ng.reynadi.cloud",
+        "NODE_ENV": "production"
+      }
+      // Secrets (DATABASE_URL, BETTER_AUTH_SECRET) are set via:
+      //   wrangler secret put DATABASE_URL --env production
+      //   wrangler secret put BETTER_AUTH_SECRET --env production
+    }
+  }
+}

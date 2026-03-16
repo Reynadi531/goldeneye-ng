@@ -6,6 +6,7 @@
     "build": "tsdown",
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "deploy": "wrangler deploy --env production",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.mjs",
     "db:seed": "bun run seed.ts"
