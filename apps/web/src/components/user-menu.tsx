@@ -1,4 +1,3 @@
-import { Button } from "@goldeneye-ng/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@goldeneye-ng/ui/components/dropdown-menu";
 import { Skeleton } from "@goldeneye-ng/ui/components/skeleton";
+import { buttonVariants } from "@goldeneye-ng/ui/components/button";
 import { ShieldCheck, User, LogOut, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -19,13 +19,13 @@ export default function UserMenu() {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
+    return <Skeleton className="h-8 w-24" />;
   }
 
   if (!session) {
     return (
       <Link to="/login">
-        <Button variant="outline">Sign In</Button>
+        <button className={buttonVariants({ variant: "outline" })}>Sign In</button>
       </Link>
     );
   }
@@ -35,17 +35,15 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button variant="outline" className="gap-2">
-            {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-yellow-500" />
-            ) : (
-              <User className="w-4 h-4" />
-            )}
-            {session.user.name}
-          </Button>
-        }
-      ></DropdownMenuTrigger>
+        className={buttonVariants({ variant: "outline" })}
+      >
+        {isAdmin ? (
+          <ShieldCheck className="w-4 h-4 text-yellow-500" />
+        ) : (
+          <User className="w-4 h-4" />
+        )}
+        {session.user.name}
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-2">
@@ -70,9 +68,7 @@ export default function UserMenu() {
               authClient.signOut({
                 fetchOptions: {
                   onSuccess: () => {
-                    navigate({
-                      to: "/",
-                    });
+                    navigate({ to: "/" });
                   },
                 },
               });

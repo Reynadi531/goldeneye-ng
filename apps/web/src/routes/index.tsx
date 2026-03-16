@@ -24,7 +24,7 @@ interface MineFeature {
   name: string;
   type: "point" | "polygon";
   location: LatLngExpression;
-  coordinates?: LatLngExpression[];
+  coordinates?: LatLngExpression[][];
   properties: Record<string, unknown>;
 }
 
@@ -102,7 +102,7 @@ function Index() {
         name: f.name,
         type: f.type,
         location: [f.lat, f.lng] as LatLngExpression,
-        coordinates: f.coordinates ? (f.coordinates as LatLngExpression[]) : undefined,
+        coordinates: f.coordinates ? (f.coordinates as LatLngExpression[][]) : undefined,
         properties: f.properties,
         color: style.color,
         opacity: style.opacity,
@@ -128,7 +128,7 @@ function Index() {
   const visibleFeatures = visibleMines;
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden isolate">
       <MapViewer mines={visibleMines} />
 
       {showLayerPanel && layerGroups.length > 0 && (
