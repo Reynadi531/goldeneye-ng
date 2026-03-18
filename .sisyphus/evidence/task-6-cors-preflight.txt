@@ -1,0 +1,20 @@
+HTTP/1.1 502 Bad Gateway
+Server: nginx/1.29.6
+Date: Wed, 18 Mar 2026 07:51:14 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: keep-alive
+X-Cache-Zoom-TTL: 604800s (7-days)
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Allow-Headers: DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range
+
+HTTP/1.1 204 No Content
+Server: nginx/1.29.6
+Date: Wed, 18 Mar 2026 07:51:16 GMT
+Connection: keep-alive
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Allow-Headers: DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range
+Content-Length: 0
+

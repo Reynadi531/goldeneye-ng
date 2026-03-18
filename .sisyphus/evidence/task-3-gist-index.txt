@@ -1,0 +1,5 @@
+ schemaname |  tablename   |       indexname       |                                  indexdef                                   
+------------+--------------+-----------------------+-----------------------------------------------------------------------------
+ public     | mine_feature | mine_feature_geom_idx | CREATE INDEX mine_feature_geom_idx ON public.mine_feature USING gist (geom)
+(1 row)
+

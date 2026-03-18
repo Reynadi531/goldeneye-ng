@@ -1,0 +1,4 @@
+ original | simplified 
+----------+------------
+(0 rows)
+

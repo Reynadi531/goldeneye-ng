@@ -1,0 +1,10 @@
+@goldeneye-ng/ui:check-types: $ tsc --noEmit
+web:check-types: cache hit, replaying logs 6aa2df690b6a7d2e
+web:check-types: $ tsc --noEmit
+server:check-types: cache hit, replaying logs 87dff7a8b1ce2b7b
+server:check-types: $ tsc -b
+
+ Tasks:    3 successful, 3 total
+Cached:    3 cached, 3 total
+  Time:    86ms >>> FULL TURBO
+

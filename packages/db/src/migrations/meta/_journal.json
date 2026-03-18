@@ -15,6 +15,20 @@
       "when": 1710779280000,
       "tag": "0001_enable_postgis",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773819086871,
+      "tag": "0002_add_geom_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1742374800000,
+      "tag": "0003_tile_function",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,2 @@
+ geom        | geometry(MultiPolygon,4326) |           |          | 
+    "mine_feature_geom_idx" gist (geom)

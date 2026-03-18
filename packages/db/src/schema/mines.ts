@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, doublePrecision, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, doublePrecision, jsonb, index, customType } from "drizzle-orm/pg-core";
+
+const geometry = customType<{ data: unknown }>({
+  dataType() {
+    return "geometry(MultiPolygon,4326)";
+  },
+});
 
 export const mineLayer = pgTable("mine_layer", {
   id: text("id").primaryKey(),
@@ -22,6 +28,8 @@ export const mineFeature = pgTable(
     lng: doublePrecision("lng").notNull(),
     // Full coordinate array stored as JSON (polygon rings or null for points)
     coordinates: jsonb("coordinates"),
+    // PostGIS geometry column for spatial queries
+    geom: geometry("geom"),
     // All raw shapefile attributes
     properties: jsonb("properties").notNull().default({}),
     importedAt: timestamp("imported_at").defaultNow().notNull(),
@@ -30,5 +38,6 @@ export const mineFeature = pgTable(
   (table) => [
     index("mine_feature_type_idx").on(table.type),
     index("mine_feature_layer_idx").on(table.layerId),
+    index("mine_feature_geom_idx").on(table.geom),
   ],
 );

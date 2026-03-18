@@ -18,16 +18,6 @@ const LAYER_COLORS = [
   "#ec4899",
 ];
 
-interface MineFeature {
-  id: string;
-  layerId: string;
-  name: string;
-  type: "point" | "polygon";
-  location: LatLngExpression;
-  coordinates?: LatLngExpression[][];
-  properties: Record<string, unknown>;
-}
-
 interface LayerStyle {
   color: string;
   opacity: number;

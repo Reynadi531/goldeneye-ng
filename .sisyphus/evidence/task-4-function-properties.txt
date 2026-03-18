@@ -1,0 +1,5 @@
+      proname       | return_type |            arg_types            | provolatile | proisstrict | proparallel 
+--------------------+-------------+---------------------------------+-------------+-------------+-------------
+ tile_mine_features | bytea       | [0:2]={integer,integer,integer} | i           | t           | s
+(1 row)
+

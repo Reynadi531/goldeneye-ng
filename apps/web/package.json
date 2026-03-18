@@ -22,10 +22,12 @@
     "dotenv": "catalog:",
     "leaflet": "^1.9.4",
     "lucide-react": "catalog:",
+    "maplibre-gl": "^5.20.2",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.0",
     "shpjs": "^6.2.0",
     "sonner": "catalog:",
     "zod": "catalog:"
