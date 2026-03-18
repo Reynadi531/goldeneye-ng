@@ -8,6 +8,13 @@
       "when": 1773515030916,
       "tag": "0000_marvelous_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1710779280000,
+      "tag": "0001_enable_postgis",
+      "breakpoints": true
     }
   ]
 }

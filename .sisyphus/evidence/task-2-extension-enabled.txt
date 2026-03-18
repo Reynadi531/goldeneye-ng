@@ -1,0 +1,5 @@
+ extname 
+---------
+ postgis
+(1 row)
+

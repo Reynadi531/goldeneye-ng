@@ -1,0 +1,2 @@
+CREATE EXTENSION
+NOTICE:  extension "postgis" already exists, skipping
