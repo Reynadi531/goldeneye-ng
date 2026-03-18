@@ -1,0 +1,6 @@
+CREATE EXTENSION
+            postgis_version            
+---------------------------------------
+ 3.4 USE_GEOS=1 USE_PROJ=1 USE_STATS=1
+(1 row)
+

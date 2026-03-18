@@ -1,0 +1,3 @@
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+goldeneye-postgres   postgis/postgis:16-3.4   "docker-entrypoint.s…"   postgres   35 seconds ago   Up 31 seconds (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+goldeneye-redis      redis:7-alpine           "docker-entrypoint.s…"   redis      35 seconds ago   Up 31 seconds (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
