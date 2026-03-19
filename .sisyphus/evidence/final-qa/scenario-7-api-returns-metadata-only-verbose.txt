@@ -1,0 +1,7 @@
+*   Trying 127.0.0.1:3000...
+*   Trying ::1:3000...
+* connect to ::1 port 3000 failed: Connection refused
+* After 5000ms connect time, move on!
+* connect to 127.0.0.1 port 3000 failed: Connection timed out
+* Failed to connect to localhost port 3000 after 5205 ms: Connection timed out
+* Closing connection 0

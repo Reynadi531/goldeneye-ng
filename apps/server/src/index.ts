@@ -1,13 +1,10 @@
 import { auth } from "@goldeneye-ng/auth";
-import { cache } from "@goldeneye-ng/cache";
-import { db, eq } from "@goldeneye-ng/db";
+import { db, eq, sql } from "@goldeneye-ng/db";
 import { mineLayer, mineFeature } from "@goldeneye-ng/db/schema/mines";
 import { env } from "@goldeneye-ng/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-
-const LAYERS_CACHE_KEY = "layers:all";
 
 const app = new Hono();
 
@@ -24,34 +21,80 @@ app.use(
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
+app.get("/api/bounds", async (c) => {
+  const result = await db.execute<{
+    min_lng: number | null;
+    min_lat: number | null;
+    max_lng: number | null;
+    max_lat: number | null;
+  }>(sql`
+    SELECT 
+      ST_XMin(ST_Extent(geom)) as min_lng,
+      ST_YMin(ST_Extent(geom)) as min_lat,
+      ST_XMax(ST_Extent(geom)) as max_lng,
+      ST_YMax(ST_Extent(geom)) as max_lat
+    FROM mine_feature
+    WHERE geom IS NOT NULL
+  `);
+
+  const row = result.rows[0];
+  if (!row?.min_lng) {
+    return c.json(null);
+  }
+
+  return c.json({
+    minLng: row.min_lng,
+    minLat: row.min_lat,
+    maxLng: row.max_lng,
+    maxLat: row.max_lat,
+  });
+});
+
 // --- Layer routes ---
 
-// GET /api/layers — list all layers with their features nested
+// GET /api/layers — list all layers with aggregated counts (no features array)
 app.get("/api/layers", async (c) => {
-  const cached = await cache.get<
-    Array<
-      typeof mineLayer.$inferSelect & {
-        features: (typeof mineFeature.$inferSelect)[];
-      }
-    >
-  >(LAYERS_CACHE_KEY);
-  if (cached) return c.json(cached);
+  const result = await db.execute<{
+    id: string;
+    name: string;
+    description: string | null;
+    imported_at: Date;
+    imported_by: string;
+    feature_count: string;
+    point_count: string;
+    polygon_count: string;
+  }>(sql`
+    SELECT 
+      ml.id,
+      ml.name,
+      ml.description,
+      ml.imported_at,
+      ml.imported_by,
+      COUNT(mf.id)::text AS feature_count,
+      COUNT(mf.id) FILTER (WHERE mf.type = 'point')::text AS point_count,
+      COUNT(mf.id) FILTER (WHERE mf.type = 'polygon')::text AS polygon_count
+    FROM mine_layer ml
+    LEFT JOIN mine_feature mf ON mf.layer_id = ml.id
+    GROUP BY ml.id
+    ORDER BY ml.imported_at
+  `);
 
-  const layers = await db.select().from(mineLayer).orderBy(mineLayer.importedAt);
-  const features = await db.select().from(mineFeature).orderBy(mineFeature.importedAt);
-
-  const result = layers.map((layer) => ({
-    ...layer,
-    features: features.filter((f) => f.layerId === layer.id),
+  const layers = result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    importedAt: row.imported_at,
+    importedBy: row.imported_by,
+    featureCount: parseInt(row.feature_count, 10),
+    pointCount: parseInt(row.point_count, 10),
+    polygonCount: parseInt(row.polygon_count, 10),
   }));
 
-  await cache.set(LAYERS_CACHE_KEY, result);
-
-  return c.json(result);
+  return c.json(layers);
 });
 
 // POST /api/layers — create a new layer and bulk-insert its features
-// Body: { name: string; description?: string; features: Array<{ id, name, type, lat, lng, coordinates?, properties }> }
+// Body: { name: string; description?: string; features: Array<{ id, name, type, lat, lng, geojsonGeometry?, properties }> }
 // Requires authenticated admin session
 app.post("/api/layers", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
@@ -68,7 +111,7 @@ app.post("/api/layers", async (c) => {
       type: "point" | "polygon";
       lat: number;
       lng: number;
-      coordinates?: [number, number][][];
+      geojsonGeometry?: { type: string; coordinates: unknown } | null;
       properties: Record<string, unknown>;
     }[];
   }>();
@@ -89,23 +132,59 @@ app.post("/api/layers", async (c) => {
     importedBy: session.user.id,
   });
 
-  const featureRows = body.features.map((f) => ({
-    id: f.id,
-    layerId,
-    name: f.name,
-    type: f.type,
-    lat: f.lat,
-    lng: f.lng,
-    coordinates: f.coordinates ?? null,
-    properties: f.properties,
-    importedBy: session.user.id,
-  }));
+  for (const f of body.features) {
+    if (f.geojsonGeometry) {
+      await db.execute(sql`
+        INSERT INTO mine_feature (id, layer_id, name, type, lat, lng, geom, properties, imported_by)
+        VALUES (
+          ${f.id},
+          ${layerId},
+          ${f.name},
+          ${f.type},
+          ${f.lat},
+          ${f.lng},
+          ST_MakeValid(ST_GeomFromGeoJSON(${JSON.stringify(f.geojsonGeometry)})),
+          ${JSON.stringify(f.properties)}::jsonb,
+          ${session.user.id}
+        )
+        ON CONFLICT (id) DO NOTHING
+      `);
+    } else {
+      await db.insert(mineFeature).values({
+        id: f.id,
+        layerId,
+        name: f.name,
+        type: f.type,
+        lat: f.lat,
+        lng: f.lng,
+        properties: f.properties,
+        importedBy: session.user.id,
+      }).onConflictDoNothing();
+    }
+  }
 
-  await db.insert(mineFeature).values(featureRows).onConflictDoNothing();
+  return c.json({ layerId, inserted: body.features.length });
+});
 
-  await cache.del(LAYERS_CACHE_KEY);
+app.get("/api/features/:id", async (c) => {
+  const id = c.req.param("id");
+  const result = await db
+    .select({
+      id: mineFeature.id,
+      layerId: mineFeature.layerId,
+      name: mineFeature.name,
+      type: mineFeature.type,
+      properties: mineFeature.properties,
+    })
+    .from(mineFeature)
+    .where(eq(mineFeature.id, id))
+    .limit(1);
 
-  return c.json({ layerId, inserted: featureRows.length });
+  if (result.length === 0) {
+    return c.json({ error: "Feature not found" }, 404);
+  }
+
+  return c.json(result[0]);
 });
 
 // DELETE /api/layers/:id — delete a layer and all its features (cascade)
@@ -117,8 +196,6 @@ app.delete("/api/layers/:id", async (c) => {
 
   const id = c.req.param("id");
   await db.delete(mineLayer).where(eq(mineLayer.id, id));
-
-  await cache.del(LAYERS_CACHE_KEY);
 
   return c.json({ deleted: id });
 });

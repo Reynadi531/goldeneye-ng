@@ -11,7 +11,6 @@ export interface MineFeatureRow {
   type: "point" | "polygon";
   lat: number;
   lng: number;
-  coordinates: [number, number][][] | null;
   properties: Record<string, unknown>;
   importedAt: string;
   importedBy: string;
@@ -23,7 +22,7 @@ export interface MineFeatureInput {
   type: "point" | "polygon";
   lat: number;
   lng: number;
-  coordinates?: [number, number][][];
+  geojsonGeometry?: GeoJSON.Geometry | null;
   properties: Record<string, unknown>;
 }
 
@@ -35,17 +34,30 @@ export interface LayerRow {
   description: string | null;
   importedAt: string;
   importedBy: string;
-}
-
-export interface LayerWithFeatures extends LayerRow {
-  features: MineFeatureRow[];
+  featureCount: number;
+  pointCount: number;
+  polygonCount: number;
 }
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
-export async function getLayers(): Promise<LayerWithFeatures[]> {
+export async function getLayers(): Promise<LayerRow[]> {
   const res = await fetch(`${BASE}/api/layers`, { credentials: "include" });
   if (!res.ok) throw new Error(`Failed to load layers: ${res.status}`);
+  return res.json();
+}
+
+export interface FeatureDetail {
+  id: string;
+  layerId: string;
+  name: string;
+  type: "point" | "polygon";
+  properties: Record<string, unknown>;
+}
+
+export async function getFeature(id: string): Promise<FeatureDetail> {
+  const res = await fetch(`${BASE}/api/features/${id}`, { credentials: "include" });
+  if (!res.ok) throw new Error(`Failed to load feature: ${res.status}`);
   return res.json();
 }
 
@@ -73,4 +85,17 @@ export async function deleteLayer(id: string): Promise<void> {
     credentials: "include",
   });
   if (!res.ok) throw new Error(`Failed to delete layer: ${res.status}`);
+}
+
+export interface Bounds {
+  minLng: number;
+  minLat: number;
+  maxLng: number;
+  maxLat: number;
+}
+
+export async function getBounds(): Promise<Bounds | null> {
+  const res = await fetch(`${BASE}/api/bounds`, { credentials: "include" });
+  if (!res.ok) throw new Error(`Failed to load bounds: ${res.status}`);
+  return res.json();
 }

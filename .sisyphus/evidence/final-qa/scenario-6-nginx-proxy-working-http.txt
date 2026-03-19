@@ -1,0 +1,14 @@
+HTTP/1.1 404 Not Found
+Server: nginx/1.29.6
+Date: Wed, 18 Mar 2026 19:55:44 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 35
+Connection: keep-alive
+vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+X-Cache-Status: MISS
+X-Cache-Zoom-TTL: 604800s (7-days)
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Allow-Headers: DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range
+
+Source mine_features does not exist

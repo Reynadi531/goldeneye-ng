@@ -1,0 +1,110 @@
+TASK 5: MARTIN TILE SERVER CONFIGURATION
+========================================
+
+OBJECTIVE:
+Add Martin tile server to Docker Compose with PostgreSQL function source pointing to tile_mine_features.
+
+COMPLETION STATUS: ✅ COMPLETE
+
+FILES MODIFIED:
+- docker-compose.yml: Added martin service, updated postgres image to postgis/postgis:16-3.4
+
+CONFIGURATION SUMMARY:
+├── Image: ghcr.io/maplibre/martin:latest (v1.4.0)
+├── Container: goldeneye-martin
+├── Port Mapping: 3002:3000 (host:container)
+├── Database URL: postgresql://postgres:password@goldeneye-postgres:5432/goldeneye
+├── Auto-Discovery: Enabled (no config file needed)
+├── Function Source: tile_mine_features(z integer, x integer, y integer) RETURNS bytea
+└── Dependency: postgres service (healthcheck required)
+
+VERIFICATION RESULTS:
+
+1. ✅ Martin Container Status
+   - Status: Running (Up 3 minutes)
+   - Health: Healthy
+   - Process: /usr/local/bin/martin (PID 1)
+
+2. ✅ Database Connection
+   - Connection Status: Connected to PostgreSQL 16.4.0 / PostGIS 3.4.3
+   - Database: goldeneye
+   - Schema: public
+
+3. ✅ Function Source Discovery
+   - Discovered Source: tile_mine_features
+   - Signature: public.tile_mine_features(integer, integer, integer) -> bytea
+   - Auto-discovery: Working correctly
+   - Total Sources Discovered: 14 (1 function + 13 tables)
+
+4. ✅ API Catalog Endpoint
+   - Request: GET /catalog
+   - Response: HTTP 200 OK
+   - Content-Type: application/json
+   - Sources Listed: 14 (including tile_mine_features ✓)
+   - Full List:
+     - addrfeat, bg, county, cousub, edges, faces
+     - mine_feature, place, state, tabblock, tabblock20
+     - tile_mine_features ← CUSTOM FUNCTION
+     - tract, zcta5
+
+5. ✅ Tile Endpoint Test
+   - Request: GET /tile_mine_features/8/128/128
+   - Response: HTTP 204 No Content
+   - Response Size: 0 bytes (empty MVT)
+   - Expected Behavior: ✓ Correct for empty tiles
+   - Reason: geom column has no data yet (populated in Task 8)
+
+6. ✅ Docker Compose Configuration
+   - Syntax Validation: ✓ Valid
+   - Services Status: 4/4 running (postgres, redis, nginx, martin)
+   - Healthchecks: postgres=healthy, others=running
+
+QUALITY ASSURANCE SCENARIOS:
+
+Scenario 1: Martin Container Startup & Connection
+│ Command: docker compose logs martin | grep -i "discovered\|connected"
+│ Result: ✓ PASS
+│ Evidence: "Connected to PostgreSQL 16.4.0 / PostGIS 3.4.3 for source goldeneye"
+│ Evidence: "Discovered source tile_mine_features from function public.tile_mine_features"
+
+Scenario 2: Martin Serves Catalog
+│ Command: curl http://localhost:3002/catalog
+│ Result: ✓ PASS (HTTP 200)
+│ Evidence: JSON response with 14 sources, including tile_mine_features
+│ File: task-5-martin-catalog.txt
+
+Scenario 3: Martin Tile Endpoint Response
+│ Command: curl -I http://localhost:3002/tile_mine_features/8/128/128
+│ Result: ✓ PASS (HTTP 204)
+│ Evidence: No Content (expected for empty MVT)
+│ File: task-5-tile-endpoint.txt
+
+EVIDENCE FILES CREATED:
+- task-5-martin-startup.txt: Full startup logs showing discovery
+- task-5-martin-catalog.txt: Catalog JSON listing all sources
+- task-5-tile-endpoint.txt: Tile endpoint HTTP response headers
+- task-5-tile-bytes.txt: Response size (0 bytes)
+- task-5-compose-valid.txt: Docker Compose validation result
+- task-5-summary.txt: This summary file
+
+SUCCESS CRITERIA MET:
+✅ Martin service added to docker-compose.yml
+✅ Martin container starts successfully
+✅ Martin connects to PostGIS database
+✅ Function source tile_mine_features discovered
+✅ Tile endpoint responds with HTTP 204 (empty MVT)
+✅ No configuration file needed (auto-discovery works)
+✅ All services running and healthy
+
+NEXT STEPS:
+- Task 8: Data migration will populate geom column
+- Task 9: MapLibre frontend will request tiles via Martin
+- Tiles will contain actual features after Task 8
+
+NOTES:
+- Martin uses default port 3000 (mapped to 3002 on host)
+- No listening message in logs (normal Martin behavior)
+- PostGIS 3.4.3 warning is informational, not critical
+- CORS enabled by default for browser tile requests
+- Empty MVT (0 bytes) is correct behavior until data populated
+

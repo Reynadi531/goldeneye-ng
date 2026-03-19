@@ -1,0 +1,18 @@
+goldeneye-martin  | [2m2026-03-18T18:59:03.621802Z[0m [32m INFO[0m [2mmartin[0m[2m:[0m Starting Martin v1.4.0
+goldeneye-martin  | [2m2026-03-18T18:59:03.621849Z[0m [32m INFO[0m [2mmartin[0m[2m:[0m Using /config.yaml
+goldeneye-martin  | [2m2026-03-18T18:59:03.622181Z[0m [32m INFO[0m [2mmartin::config::file::cache[0m[2m:[0m Initializing PMTiles directory cache with maximum size 128 MB
+goldeneye-martin  | [2m2026-03-18T18:59:03.622710Z[0m [32m INFO[0m [2mmartin_core::tiles::postgres::pool[0m[2m:[0m Connecting with SSL support: Config { user: Some("postgres"), password: Some(_), dbname: Some("goldeneye"), options: None, application_name: Some("Martin v0.3.1 - pid=1"), ssl_mode: Prefer, host: [Tcp("postgres")], hostaddr: [], port: [5432], connect_timeout: None, tcp_user_timeout: None, keepalives: true, keepalives_idle: 7200s, keepalives_interval: None, keepalives_retries: None, target_session_attrs: Any, channel_binding: Prefer, load_balance_hosts: Disable }
+goldeneye-martin  | [2m2026-03-18T18:59:03.640649Z[0m [33m WARN[0m [2mmartin_core::tiles::postgres::pool[0m[2m:[0m PostGIS 3.4.3 is older than the recommended minimum 3.5.0. In the used version, some geometry may be hidden on some zoom levels. If You encounter this bug, please consider updating your postgis installation. For further details please refer to https://github.com/maplibre/martin/issues/1651#issuecomment-2628674788
+goldeneye-martin  | [2m2026-03-18T18:59:03.640679Z[0m [32m INFO[0m [2mmartin_core::tiles::postgres::pool[0m[2m:[0m Connected to PostgreSQL 16.4.0 / PostGIS 3.4.3 for source goldeneye
+goldeneye-martin  | [2m2026-03-18T18:59:03.665485Z[0m [32m INFO[0m [2mmartin::config::file::tiles::postgres::builder[0m[2m:[0m Configured source tile_mine_features from the function public.tile_mine_features(integer, integer, integer) -> bytea
+goldeneye-martin  | [2m2026-03-18T18:59:03.665700Z[0m [32m INFO[0m [2mmartin::config::file::cache[0m[2m:[0m Initializing tile cache with maximum size 256 MB
+goldeneye-martin  | [2m2026-03-18T18:59:03.665745Z[0m [32m INFO[0m [2mmartin::config::file::cache[0m[2m:[0m Initializing sprite cache with maximum size 64 MB
+goldeneye-martin  | [2m2026-03-18T18:59:03.665780Z[0m [32m INFO[0m [2mmartin::config::file::cache[0m[2m:[0m Initializing font cache with maximum size 64 MB
+goldeneye-martin  | [2m2026-03-18T18:59:03.665847Z[0m [32m INFO[0m [2mmartin[0m[2m:[0m Use --save-config to save or print Martin configuration.
+goldeneye-martin  | [2m2026-03-18T18:59:03.665971Z[0m [32m INFO[0m [2mmartin::config::file::cors[0m[2m:[0m CORS enabled with defaults: CorsProperties { origin: ["*"], max_age: None, unrecognized: {} }
+goldeneye-martin  | [2m2026-03-18T18:59:03.666858Z[0m [32m INFO[0m [2mmartin[0m[2m:[0m Web UI is disabled. Use `--webui enable-for-all` in CLI or a config value to enable it for all connections.
+=== Tile test ===
+HTTP/1.1 204 No Content
+vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+date: Wed, 18 Mar 2026 19:00:46 GMT
+

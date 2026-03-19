@@ -1,18 +1,4 @@
 services:
-  server:
-    image: ghcr.io/reynadi531/goldeneye-ng-server:latest
-    container_name: goldeneye-server
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/postgres
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
   postgres:
     image: postgis/postgis:16-3.4
     container_name: goldeneye-postgres
@@ -35,28 +21,13 @@ services:
     container_name: goldeneye-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-
-  nginx:
-    image: nginx:alpine
-    container_name: goldeneye-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - nginx_cache:/var/cache/nginx/tiles
-    depends_on:
-      martin:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "exit 0"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   martin:
     image: ghcr.io/maplibre/martin:latest
@@ -79,5 +50,4 @@ services:
 
 volumes:
   postgres_data:
-  nginx_cache:
-
+  redis_data:

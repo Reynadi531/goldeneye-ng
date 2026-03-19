@@ -16,7 +16,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { getLayers, deleteLayer, type LayerWithFeatures } from "@/lib/api";
+import { getLayers, deleteLayer, type LayerRow } from "@/lib/api";
 import { Button } from "@goldeneye-ng/ui/components/button";
 import {
   Card,
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [layers, setLayers] = useState<LayerWithFeatures[]>([]);
+  const [layers, setLayers] = useState<LayerRow[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [showUploader, setShowUploader] = useState(false);
   const [activities, setActivities] = useState<
@@ -68,14 +68,14 @@ function AdminDashboard() {
       .catch(() => toast.error("Failed to load layer data"));
   }, []);
 
-  const handleDataLoaded = useCallback((layer: LayerWithFeatures) => {
+  const handleDataLoaded = useCallback((layer: LayerRow) => {
     setLayers((prev) => [...prev, layer]);
     setShowUploader(false);
 
     const newActivity = {
       id: crypto.randomUUID(),
       action: "import",
-      detail: `Imported layer "${layer.name}" (${layer.features.length} features)`,
+      detail: `Imported layer "${layer.name}" (${layer.featureCount} features)`,
       timestamp: new Date(),
     };
     setActivities((prev) => [newActivity, ...prev]);
@@ -115,13 +115,11 @@ function AdminDashboard() {
     toast.success("User role updated");
   }, []);
 
-  const allFeatures = layers.flatMap((l) => l.features);
-
   const stats = {
     totalLayers: layers.length,
-    totalFeatures: allFeatures.length,
-    points: allFeatures.filter((f) => f.type === "point").length,
-    polygons: allFeatures.filter((f) => f.type === "polygon").length,
+    totalFeatures: layers.reduce((sum, l) => sum + l.featureCount, 0),
+    points: layers.reduce((sum, l) => sum + l.pointCount, 0),
+    polygons: layers.reduce((sum, l) => sum + l.polygonCount, 0),
     totalUsers: users.length,
     admins: users.filter((u) => u.role === "admin").length,
   };
@@ -317,8 +315,6 @@ function AdminDashboard() {
             ) : (
               <div className="grid gap-4">
                 {layers.map((layer) => {
-                  const pointCount = layer.features.filter((f) => f.type === "point").length;
-                  const polygonCount = layer.features.filter((f) => f.type === "polygon").length;
                   return (
                     <Card key={layer.id}>
                       <CardContent className="flex items-center justify-between py-4">
@@ -331,18 +327,18 @@ function AdminDashboard() {
                             <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Database className="w-3 h-3" />
-                                {layer.features.length} features
+                                {layer.featureCount} features
                               </span>
-                              {pointCount > 0 && (
+                              {layer.pointCount > 0 && (
                                 <span className="flex items-center gap-1">
                                   <MapPin className="w-3 h-3 text-red-500" />
-                                  {pointCount}
+                                  {layer.pointCount}
                                 </span>
                               )}
-                              {polygonCount > 0 && (
+                              {layer.polygonCount > 0 && (
                                 <span className="flex items-center gap-1">
                                   <Pentagon className="w-3 h-3 text-red-500" />
-                                  {polygonCount}
+                                  {layer.polygonCount}
                                 </span>
                               )}
                               <span className="flex items-center gap-1">

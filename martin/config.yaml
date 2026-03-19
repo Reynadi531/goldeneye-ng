@@ -1,0 +1,13 @@
+listen_addresses: '0.0.0.0:3001'
+
+postgres:
+  connection_string: ${DATABASE_URL}
+  default_srid: 4326
+  functions:
+    tile_mine_features:
+      schema: public
+      function: tile_mine_features
+      minzoom: 0
+      maxzoom: 22
+      bounds: [-180.0, -90.0, 180.0, 90.0]
+      id_columns: [id]

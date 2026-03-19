@@ -1,0 +1,4 @@
+goldeneye-nginx	Up 51 minutes (healthy)
+goldeneye-martin	Up 51 minutes (healthy)
+goldeneye-postgres	Up 51 minutes (healthy)
+goldeneye-redis	Up 51 minutes (healthy)

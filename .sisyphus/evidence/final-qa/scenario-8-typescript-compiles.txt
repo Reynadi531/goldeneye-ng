@@ -1,0 +1,16 @@
+$ turbo check-types
+• turbo 2.8.17
+• Packages in scope: @goldeneye-ng/auth, @goldeneye-ng/cache, @goldeneye-ng/config, @goldeneye-ng/db, @goldeneye-ng/env, @goldeneye-ng/ui, server, web
+• Running check-types in 8 packages
+• Remote caching disabled
+@goldeneye-ng/ui:check-types: cache hit, replaying logs d2be8194cc5e7731
+@goldeneye-ng/ui:check-types: $ tsc --noEmit
+server:check-types: cache hit, replaying logs 7358c905ac9fd748
+server:check-types: $ tsc -b
+web:check-types: cache hit, replaying logs 6f78215a2febd64c
+web:check-types: $ tsc --noEmit
+
+ Tasks:    3 successful, 3 total
+Cached:    3 cached, 3 total
+  Time:    75ms >>> FULL TURBO
+

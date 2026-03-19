@@ -5,14 +5,14 @@ import { Button } from "@goldeneye-ng/ui/components/button";
 import { Input } from "@goldeneye-ng/ui/components/input";
 import { Label } from "@goldeneye-ng/ui/components/label";
 import { toast } from "sonner";
-import { saveLayer, type MineFeatureInput, type LayerWithFeatures } from "@/lib/api";
+import { saveLayer, type MineFeatureInput, type LayerRow } from "@/lib/api";
 
 // shpjs v6 types ship with an outdated declaration requiring cpg as mandatory.
 // At runtime cpg is optional — cast to work around the stale @types/shpjs package.
 const parseDbf = _parseDbf as (dbf: ArrayBuffer, cpg?: ArrayBuffer) => GeoJSON.GeoJsonProperties[];
 
 interface ShpUploaderProps {
-  onDataLoaded: (layer: LayerWithFeatures) => void;
+  onDataLoaded: (layer: LayerRow) => void;
   onClose?: () => void;
 }
 
@@ -64,27 +64,20 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
 
         let lat = 0;
         let lng = 0;
-        let coordinates: [number, number][][] | undefined;
+        let geojsonGeometry: GeoJSON.Geometry | null = null;
         let type: "point" | "polygon" = "point";
 
         if (feature.geometry.type === "Point") {
           lng = feature.geometry.coordinates[0];
           lat = feature.geometry.coordinates[1];
-        } else if (
-          feature.geometry.type === "MultiPoint" ||
-          feature.geometry.type === "LineString"
-        ) {
-          const coords = feature.geometry.coordinates;
-          if (coords && coords.length > 0) {
-            lng = coords[0][0];
-            lat = coords[0][1];
-          }
+          geojsonGeometry = feature.geometry;
         } else if (feature.geometry.type === "Polygon") {
           type = "polygon";
-          // Store all rings (exterior + holes) as [lat, lng] pairs
-          coordinates = feature.geometry.coordinates.map((ring: number[][]) =>
-            ring.map((c) => [c[1], c[0]] as [number, number]),
-          );
+          // Keep as MultiPolygon for consistency
+          geojsonGeometry = {
+            type: "MultiPolygon",
+            coordinates: [feature.geometry.coordinates],
+          };
           const exterior = feature.geometry.coordinates[0];
           if (exterior && exterior.length > 0) {
             lng = exterior[0][0];
@@ -92,15 +85,20 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
           }
         } else if (feature.geometry.type === "MultiPolygon") {
           type = "polygon";
-          // Flatten all polygons' rings so Leaflet renders every sub-polygon
-          coordinates = feature.geometry.coordinates.flatMap((polygon: number[][][]) =>
-            polygon.map((ring: number[][]) => ring.map((c) => [c[1], c[0]] as [number, number])),
-          );
+          // Keep native MultiPolygon structure — do NOT flatten
+          geojsonGeometry = feature.geometry;
           const firstRing = feature.geometry.coordinates[0]?.[0];
           if (firstRing && firstRing.length > 0) {
             lng = firstRing[0][0];
             lat = firstRing[0][1];
           }
+        } else if (feature.geometry.type === "MultiPoint" || feature.geometry.type === "LineString") {
+          const coords = feature.geometry.coordinates;
+          if (coords && coords.length > 0) {
+            lng = coords[0][0];
+            lat = coords[0][1];
+          }
+          geojsonGeometry = feature.geometry;
         }
 
         return {
@@ -109,7 +107,7 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
           type,
           lat,
           lng,
-          coordinates,
+          geojsonGeometry,
           properties: props,
         };
       });
@@ -117,21 +115,18 @@ export default function ShpUploader({ onDataLoaded, onClose }: ShpUploaderProps)
       // Save layer + features to DB via API
       const { layerId, inserted } = await saveLayer(layerName.trim(), features);
 
-      // Build a LayerWithFeatures-shaped response so the parent can update its list
       const now = new Date().toISOString();
-      const savedLayer: LayerWithFeatures = {
+      const pointCount = features.filter(f => f.type === "point").length;
+      const polygonCount = features.filter(f => f.type === "polygon").length;
+      const savedLayer: LayerRow = {
         id: layerId,
         name: layerName.trim(),
         description: null,
         importedAt: now,
         importedBy: "",
-        features: features.map((f) => ({
-          ...f,
-          layerId,
-          coordinates: f.coordinates ?? null,
-          importedAt: now,
-          importedBy: "",
-        })),
+        featureCount: inserted,
+        pointCount,
+        polygonCount,
       };
 
       setFiles((prev) => prev.map((f) => ({ ...f, status: "success" as const })));

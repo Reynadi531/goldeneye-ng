@@ -432,7 +432,7 @@ Max Concurrent: 4 (Waves 2 & 3)
   - Files: `packages/db/src/migrations/*.sql` or function file
   - Pre-commit: Function creation succeeds
 
-- [ ] 5. Add Martin Tile Server to Docker Stack
+- [x] 5. Add Martin Tile Server to Docker Stack
 
   **What to do**:
   - Add Martin service to `docker-compose.yml`

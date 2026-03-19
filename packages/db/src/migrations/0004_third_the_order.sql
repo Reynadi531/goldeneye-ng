@@ -1,0 +1,1 @@
+ALTER TABLE "mine_feature" ALTER COLUMN "geom" SET DATA TYPE geometry(MultiPolygon,4326);

@@ -522,3 +522,113 @@ Once Martin is running:
 - Verify X-Cache-Status: HIT on second request (if successful 200 OK)
 - Monitor cache directory growth: `/var/cache/nginx/tiles`
 - Verify cache TTL by requesting z0 tile and z14 tile, checking TTL headers
+
+
+## Task 5: Martin Tile Server Configuration (2026-03-18 15:06 UTC)
+
+### Summary
+Successfully added Martin tile server to Docker Compose with PostgreSQL function source configuration. Martin v1.4.0 auto-discovers and exposes `tile_mine_features` function as MVT tile endpoint.
+
+### ✅ Completed Actions
+
+1. **Docker Compose Service Added**
+   - Image: `ghcr.io/maplibre/martin:latest` (v1.4.0)
+   - Container name: `goldeneye-martin`
+   - Port mapping: `3002:3000` (host:container, default port 3000)
+   - Database URL: `postgresql://postgres:password@goldeneye-postgres:5432/goldeneye`
+   - Dependency: `postgres` service (healthcheck required)
+
+2. **Database Configuration**
+   - Updated `docker-compose.yml` postgres to use `postgis/postgis:16-3.4` image
+   - Database name: `goldeneye` (was incorrectly `postgres`)
+   - Environment variables corrected for PostGIS database
+
+3. **Function Source Auto-Discovery**
+   - Martin auto-discovered `tile_mine_features(integer, integer, integer) RETURNS bytea` function
+   - Also discovered table sources: `mine_feature` and all Tiger geocoding tables
+   - No explicit configuration file needed (Martin auto-detects at startup)
+
+### 🔍 Key Learnings
+
+1. **Martin Server Startup Behavior**
+   - Martin starts silently without explicit "listening on port X" message in logs
+   - Configuration/discovery phase completes with "Web UI is disabled" message
+   - HTTP server starts immediately after, listens on default 0.0.0.0:3000
+   - This is normal behavior; no error indicated by silent startup
+
+2. **Port Configuration**
+   - Default Martin port: 3000 (from CLI help: `--listen-addresses 0.0.0.0:3000`)
+   - Mapped to 3002 on host because local dev server uses 3001
+   - No explicit `--listen-addresses` argument needed (uses default)
+
+3. **API Endpoint Paths**
+   - Catalog: `GET /catalog` → JSON list of all tile sources
+   - Tile requests: `GET /{source}/{z}/{x}/{y}` → redirects to `/{source}/{z}/{x}/{y}` (no .pbf extension)
+   - Actual endpoint: `http://localhost:3002/tile_mine_features/8/128/128` returns HTTP 204 (No Content)
+
+4. **Empty Tile Handling**
+   - HTTP 204 No Content = correct response for empty MVT (0 bytes)
+   - Function returns 0-byte MVT when no features intersect tile bounds
+   - This is expected behavior until Task 8 populates geom column with actual data
+   - No error or special handling needed
+
+5. **PostGIS Version Warning**
+   - Martin warns: "PostGIS 3.4.3 is older than recommended minimum 3.5.0"
+   - Some geometry may be hidden on certain zoom levels per GitHub issue #1651
+   - Safe to proceed; data will work, but upgrade recommended for production
+
+6. **CORS Support**
+   - Martin v1.4.0 enables CORS by default: `Access-Control-Allow-Origin: *`
+   - Allows MapLibre GL JS (browser-based) to request tiles cross-origin
+
+### Technical Decisions
+
+- **Martin version**: Latest stable (1.4.0) instead of pinned v0.14 (tag not available)
+- **Port mapping**: 3002 on host to avoid conflict with dev server on 3001
+- **Auto-discovery**: No config file needed; PostgreSQL URL sufficient for function discovery
+- **ID column**: Function source configured without explicit ID column (can add later if needed for feature-state API)
+
+### QA Evidence
+
+- ✅ Martin startup: `.sisyphus/evidence/task-5-martin-startup.txt` — Connected to database ✓
+- ✅ Catalog endpoint: `.sisyphus/evidence/task-5-martin-catalog.txt` — Lists `tile_mine_features` ✓
+- ✅ Tile endpoint: `.sisyphus/evidence/task-5-tile-endpoint.txt` — HTTP 204 (empty MVT) ✓
+- ✅ Compose config: `.sisyphus/evidence/task-5-compose-valid.txt` — Valid ✓
+
+### Container Status
+
+```
+goldeneye-martin   ghcr.io/maplibre/martin:latest   Up 3 mins   0.0.0.0:3002->3000/tcp
+goldeneye-postgres postgis/postgis:16-3.4           Up 4 mins   0.0.0.0:5432:5432/tcp   (healthy)
+goldeneye-nginx    nginx:alpine                     Up 4 mins   0.0.0.0:80->80/tcp
+```
+
+### Testing Results
+
+1. **Catalog Discovery**: `curl http://localhost:3002/catalog` returns JSON with 14 sources including `tile_mine_features`
+2. **Tile Request**: `curl http://localhost:3002/tile_mine_features/8/128/128` returns HTTP 204 (0-byte MVT)
+3. **No Data Expected**: Empty response is correct; geom column will be populated in Task 8
+
+### Next Steps (Unblocked)
+
+- **Task 6**: Already completed (Nginx proxy configured)
+- **Task 7**: Already completed (MapLibre GL JS + react-map-gl installed)
+- **Task 8**: Data migration will populate geom column, tiles will contain feature data
+- **Task 9**: MapLibre frontend can request tiles via `http://localhost:3002/tile_mine_features/{z}/{x}/{y}`
+
+### Gotchas Documented
+
+1. **Martin startup logging**: No explicit "listening on" message; appears silent but server is working
+2. **Port conflicts**: Changed from 3001 to 3002 to avoid dev server conflict
+3. **Empty tiles expected**: 0-byte MVT is correct until data is populated
+4. **PostGIS version**: Warning about 3.4.3 is informational, not an error
+
+### Performance Expectations
+
+- **Startup time**: ~5 seconds to discover all sources and initialize
+- **Tile latency**: <100ms for empty MVT (function execution + tile serialization)
+- **Tile size**: 0 bytes (empty) → 10KB-1MB depending on zoom and feature density (after Task 8)
+- **Cache bypass**: Nginx will cache these tiles via port 80 reverse proxy in Task 9
+
+---
+

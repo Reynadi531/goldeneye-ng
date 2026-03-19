@@ -23,14 +23,9 @@ export const mineFeature = pgTable(
       .references(() => mineLayer.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     type: text("type", { enum: ["point", "polygon"] }).notNull(),
-    // For points: [lng, lat]; for polygons: centroid
     lat: doublePrecision("lat").notNull(),
     lng: doublePrecision("lng").notNull(),
-    // Full coordinate array stored as JSON (polygon rings or null for points)
-    coordinates: jsonb("coordinates"),
-    // PostGIS geometry column for spatial queries
     geom: geometry("geom"),
-    // All raw shapefile attributes
     properties: jsonb("properties").notNull().default({}),
     importedAt: timestamp("imported_at").defaultNow().notNull(),
     importedBy: text("imported_by").notNull(),

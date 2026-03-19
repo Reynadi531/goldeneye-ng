@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Layers, MapPin, Pentagon } from "lucide-react";
-import MapViewer from "@/components/map/MapViewer";
+import MapViewerGL from "@/components/map/MapViewerGL";
 import LayerPanel, { type LayerGroup } from "@/components/map/LayerPanel";
-import { getLayers, type LayerWithFeatures } from "@/lib/api";
-import type { LatLngExpression } from "leaflet";
+import { getLayers, getBounds, type LayerRow, type Bounds } from "@/lib/api";
+import { toast } from "sonner";
 
 // Palette for auto-assigning distinct colors to layers on load
 const LAYER_COLORS = [
@@ -28,20 +28,24 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [layers, setLayers] = useState<LayerWithFeatures[]>([]);
+  const [layers, setLayers] = useState<LayerRow[]>([]);
+  const [bounds, setBounds] = useState<Bounds | null>(null);
   const [visibleLayerIds, setVisibleLayerIds] = useState<Set<string>>(new Set());
   const [layerStyles, setLayerStyles] = useState<Record<string, LayerStyle>>({});
   const [showLayerPanel, setShowLayerPanel] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadLayers = useCallback(() => {
     setIsLoading(true);
-    getLayers()
-      .then((data) => {
-        setLayers(data);
-        setVisibleLayerIds(new Set(data.map((l) => l.id)));
+    setLoadError(null);
+    Promise.all([getLayers(), getBounds()])
+      .then(([layerData, boundsData]) => {
+        setLayers(layerData);
+        setBounds(boundsData);
+        setVisibleLayerIds(new Set(layerData.map((l) => l.id)));
         const styles: Record<string, LayerStyle> = {};
-        data.forEach((l, i) => {
+        layerData.forEach((l, i) => {
           styles[l.id] = {
             color: LAYER_COLORS[i % LAYER_COLORS.length],
             opacity: 0.5,
@@ -49,9 +53,13 @@ function Index() {
         });
         setLayerStyles(styles);
       })
-      .catch(console.error)
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Failed to load layers"))
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadLayers();
+  }, [loadLayers]);
 
   const toggleLayerVisibility = useCallback((id: string) => {
     setVisibleLayerIds((prev) => {
@@ -83,41 +91,35 @@ function Index() {
     }));
   }, []);
 
-  // Flatten visible features for MapViewer, attaching per-layer style
-  const visibleMines = layers
-    .filter((l) => visibleLayerIds.has(l.id))
-    .flatMap((l) => {
-      const style = layerStyles[l.id] ?? { color: "#ef4444", opacity: 0.5 };
-      return l.features.map((f) => ({
-        id: f.id,
-        layerId: l.id,
-        name: f.name,
-        type: f.type,
-        location: [f.lat, f.lng] as LatLngExpression,
-        coordinates: f.coordinates ? (f.coordinates as LatLngExpression[][]) : undefined,
-        properties: f.properties,
-        color: style.color,
-        opacity: style.opacity,
-      }));
-    });
+  const mapLayers = layers.map((l) => ({
+    id: l.id,
+    color: layerStyles[l.id]?.color ?? "#ef4444",
+    opacity: layerStyles[l.id]?.opacity ?? 0.5,
+    visible: visibleLayerIds.has(l.id),
+  }));
 
-  const allFeatures = layers.flatMap((l) => l.features);
+  const totalPoints = layers.reduce((sum, l) => sum + l.pointCount, 0);
+  const totalPolygons = layers.reduce((sum, l) => sum + l.polygonCount, 0);
+  const visiblePoints = layers
+    .filter(l => visibleLayerIds.has(l.id))
+    .reduce((sum, l) => sum + l.pointCount, 0);
+  const visiblePolygons = layers
+    .filter(l => visibleLayerIds.has(l.id))
+    .reduce((sum, l) => sum + l.polygonCount, 0);
 
   const layerGroups: LayerGroup[] = layers.map((l) => {
     const style = layerStyles[l.id] ?? { color: "#ef4444", opacity: 0.5 };
     return {
       id: l.id,
       name: l.name,
-      featureCount: l.features.length,
-      pointCount: l.features.filter((f) => f.type === "point").length,
-      polygonCount: l.features.filter((f) => f.type === "polygon").length,
+      featureCount: l.featureCount,
+      pointCount: l.pointCount,
+      polygonCount: l.polygonCount,
       visible: visibleLayerIds.has(l.id),
       color: style.color,
       opacity: style.opacity,
     };
   });
-
-  const visibleFeatures = visibleMines;
 
   return (
     <div className="relative w-full h-full overflow-hidden isolate">
@@ -129,7 +131,24 @@ function Index() {
           </div>
         </div>
       )}
-      <MapViewer mines={visibleMines} />
+      {loadError && (
+        <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-sm text-destructive">{loadError}</span>
+            <button
+              onClick={loadLayers}
+              className="text-sm underline hover:text-foreground/80"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+      <MapViewerGL 
+        layers={mapLayers}
+        bounds={bounds}
+        onFeatureClick={() => {}}
+      />
 
       {showLayerPanel && layerGroups.length > 0 && (
         <div className="absolute top-4 left-4 z-[1000]">
@@ -160,15 +179,13 @@ function Index() {
           <div className="flex items-center gap-2">
             <MapPin className="w-3 h-3 text-red-500" />
             <span>
-              Points: {visibleFeatures.filter((f) => f.type === "point").length}/
-              {allFeatures.filter((f) => f.type === "point").length}
+              Points: {visiblePoints}/{totalPoints}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Pentagon className="w-3 h-3 text-red-500" />
             <span>
-              Polygons: {visibleFeatures.filter((f) => f.type === "polygon").length}/
-              {allFeatures.filter((f) => f.type === "polygon").length}
+              Polygons: {visiblePolygons}/{totalPolygons}
             </span>
           </div>
         </div>
