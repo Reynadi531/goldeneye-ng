@@ -1,1 +1,3 @@
-ALTER TABLE "mine_feature" ALTER COLUMN "geom" SET DATA TYPE geometry(MultiPolygon,4326);
+-- Migration 0004: Removed MultiPolygon restriction to allow any geometry type
+-- The original migration 0002 created geom as geometry(Geometry,4326) which accepts any type
+-- This file kept for historical reference but does nothing

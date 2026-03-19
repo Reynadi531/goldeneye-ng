@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, doublePrecision, jsonb, index, customType } f
 
 const geometry = customType<{ data: unknown }>({
   dataType() {
-    return "geometry(MultiPolygon,4326)";
+    return "geometry(Geometry,4326)";
   },
 });
 
