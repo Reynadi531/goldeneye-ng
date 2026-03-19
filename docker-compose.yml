@@ -4,8 +4,11 @@ services:
     container_name: goldeneye-server
     ports:
       - "3000:3000"
+    env_file:
+      - .env.docker
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/postgres
+      # Override DATABASE_URL to use internal Docker network
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
       postgres:
         condition: service_healthy
@@ -13,16 +16,18 @@ services:
   postgres:
     image: postgis/postgis:16-3.4
     container_name: goldeneye-postgres
+    env_file:
+      - .env.docker
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: goldeneye
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -50,7 +55,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      DATABASE_URL: "postgresql://postgres:password@postgres:5432/goldeneye"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     volumes:
       - ./martin/config.yaml:/config.yaml:ro
     command: ["--config", "/config.yaml"]
