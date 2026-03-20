@@ -164,16 +164,15 @@ app.post("/api/layers", async (c) => {
       }
 
       if (withGeometry.length > 0) {
-        const values = withGeometry
-          .map((f, i) => `
-            (${i}, ${layerId}, ${f.name}, ${f.type}, ${f.lat}, ${f.lng},
-             ST_MakeValid(ST_GeomFromGeoJSON(${JSON.stringify(f.geojsonGeometry)}),
-             ${JSON.stringify(f.properties)}::jsonb, ${userId})`)
-          .join(", ");
-
+        const geomValues = withGeometry.map((f) =>
+          sql`(ST_MakeValid(ST_GeomFromGeoJSON(${JSON.stringify(f.geojsonGeometry)})))`,
+        );
         await tx.execute(sql`
           INSERT INTO mine_feature (id, layer_id, name, type, lat, lng, geom, properties, imported_by)
-          VALUES ${sql.raw(values)}
+          VALUES ${sql.join(
+            withGeometry.map((f, i) => sql`(${f.id}, ${layerId}, ${f.name}, ${f.type}, ${f.lat}, ${f.lng}, ${geomValues[i]}, ${JSON.stringify(f.properties)}::jsonb, ${userId})`),
+            sql`, `,
+          )}
           ON CONFLICT (id) DO NOTHING
         `);
       }
