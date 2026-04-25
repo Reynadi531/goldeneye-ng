@@ -151,27 +151,22 @@ function Index() {
       />
 
       {showLayerPanel && layerGroups.length > 0 && (
-        <div className="absolute top-4 left-4 z-[1000]">
-          <LayerPanel
-            layers={layerGroups}
-            onToggleLayer={toggleLayerVisibility}
-            onToggleAll={toggleAllLayers}
-            onColorChange={handleColorChange}
-            onOpacityChange={handleOpacityChange}
-          />
-        </div>
+        <LayerPanel
+          layers={layerGroups}
+          onToggleLayer={toggleLayerVisibility}
+          onToggleAll={toggleAllLayers}
+          onColorChange={handleColorChange}
+          onOpacityChange={handleOpacityChange}
+        />
       )}
 
-      {layerGroups.length > 0 && (
-        <div className="absolute top-4 right-4 z-[1000]">
-          <button
-            onClick={() => setShowLayerPanel(!showLayerPanel)}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-background/95 backdrop-blur border rounded-lg shadow-lg hover:bg-muted/50 transition-colors"
-          >
-            <Layers className="w-4 h-4" />
-            Layers
-          </button>
-        </div>
+      {!showLayerPanel && layerGroups.length > 0 && (
+        <button
+          onClick={() => setShowLayerPanel(!showLayerPanel)}
+          className="absolute top-4 left-4 z-[1000] h-10 px-2 bg-background/95 backdrop-blur border rounded-lg shadow-lg hover:bg-muted/50 transition-colors flex items-center gap-2"
+        >
+          <Layers className="w-4 h-4" />
+        </button>
       )}
 
       <div className="absolute bottom-4 right-4 z-[1000] bg-background/95 backdrop-blur border rounded-lg shadow-lg p-3">

@@ -5,12 +5,12 @@ import {
   EyeOff,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   MapPin,
   Pentagon,
   Palette,
 } from "lucide-react";
 import { Checkbox } from "@goldeneye-ng/ui/components/checkbox";
-import { Button } from "@goldeneye-ng/ui/components/button";
 
 export interface LayerGroup {
   id: string;
@@ -143,28 +143,48 @@ export default function LayerPanel({
 }: LayerPanelProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [styleOpen, setStyleOpen] = useState<Record<string, boolean>>({});
+  const [isExpanded, setIsExpanded] = useState(true);
   const allVisible = layers.length > 0 && layers.every((l) => l.visible);
 
   const toggleCollapsed = (id: string) => setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const toggleStyleOpen = (id: string) => setStyleOpen((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  if (!isExpanded) {
+    return (
+      <div className="absolute top-4 left-4 z-[1000]">
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="flex items-center gap-2 px-3 py-2 text-sm bg-background/95 backdrop-blur border rounded-lg shadow-lg hover:bg-muted/50 transition-colors"
+          title="Show layers"
+        >
+          <Layers className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-background/95 backdrop-blur border rounded-lg shadow-lg w-64 overflow-hidden">
+    <div className="absolute top-4 left-4 z-[1000] bg-background/95 backdrop-blur border rounded-lg shadow-lg w-64 overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 border-b">
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="p-1.5 rounded hover:bg-muted/50 transition-colors"
+          title="Collapse"
+        >
+          <ChevronLeft className="w-3 h-3" />
+        </button>
         <Layers className="w-4 h-4" />
         <span className="text-sm font-medium">Layers</span>
         <span className="ml-1 text-xs text-muted-foreground">({layers.length})</span>
         {onToggleAll && layers.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto h-6 px-2"
+          <button
             onClick={() => onToggleAll(!allVisible)}
+            className="ml-auto p-1.5 rounded hover:bg-muted/50 transition-colors"
             title={allVisible ? "Hide all" : "Show all"}
           >
             {allVisible ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-          </Button>
+          </button>
         )}
       </div>
 
