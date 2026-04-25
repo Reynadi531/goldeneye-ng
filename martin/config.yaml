@@ -1,4 +1,4 @@
-listen_addresses: '0.0.0.0:3001'
+listen_addresses: '0.0.0.0:5000'
 
 postgres:
   connection_string: ${DATABASE_URL}
