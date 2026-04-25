@@ -148,34 +148,31 @@ app.post("/api/layers", async (c) => {
       const withGeometry = body.features.filter((f) => f.geojsonGeometry);
       const withoutGeometry = body.features.filter((f) => !f.geojsonGeometry);
 
-      if (withoutGeometry.length > 0) {
-        await tx.insert(mineFeature).values(
-          withoutGeometry.map((f) => ({
-            id: f.id,
-            layerId,
-            name: f.name,
-            type: f.type,
-            lat: f.lat,
-            lng: f.lng,
-            properties: f.properties,
-            importedBy: userId,
-          })),
-        ).onConflictDoNothing();
-      }
+      const BATCH_SIZE = 100;
 
-      if (withGeometry.length > 0) {
-        const geomValues = withGeometry.map((f) =>
-          sql`(ST_MakeValid(ST_GeomFromGeoJSON(${JSON.stringify(f.geojsonGeometry)})))`,
-        );
-        await tx.execute(sql`
-          INSERT INTO mine_feature (id, layer_id, name, type, lat, lng, geom, properties, imported_by)
-          VALUES ${sql.join(
-            withGeometry.map((f, i) => sql`(${f.id}, ${layerId}, ${f.name}, ${f.type}, ${f.lat}, ${f.lng}, ${geomValues[i]}, ${JSON.stringify(f.properties)}::jsonb, ${userId})`),
-            sql`, `,
-          )}
-          ON CONFLICT (id) DO NOTHING
-        `);
-      }
+      const batchInsert = async (items: typeof withoutGeometry, hasGeom: boolean) => {
+        for (let i = 0; i < items.length; i += BATCH_SIZE) {
+          const batch = items.slice(i, i + BATCH_SIZE);
+          await tx.insert(mineFeature).values(
+            batch.map((f) => ({
+              id: f.id,
+              layerId,
+              name: f.name,
+              type: f.type,
+              lat: f.lat,
+              lng: f.lng,
+              geom: hasGeom
+                ? sql`(ST_MakeValid(ST_GeomFromGeoJSON(${JSON.stringify(f.geojsonGeometry)}::text)))`
+                : null,
+              properties: f.properties,
+              importedBy: userId,
+            })),
+          ).onConflictDoNothing();
+        }
+      };
+
+      await batchInsert(withoutGeometry, false);
+      await batchInsert(withGeometry, true);
     });
 
     return c.json({ layerId, inserted: body.features.length });
