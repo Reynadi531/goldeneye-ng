@@ -43,7 +43,7 @@ function Index() {
       .then(([layerData, boundsData]) => {
         setLayers(layerData);
         setBounds(boundsData);
-        setVisibleLayerIds(new Set(layerData.map((l) => l.id)));
+        setVisibleLayerIds(new Set());
         const styles: Record<string, LayerStyle> = {};
         layerData.forEach((l, i) => {
           styles[l.id] = {
