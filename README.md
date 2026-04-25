@@ -101,3 +101,8 @@ goldeneye-ng/
 - `bun run db:migrate`: Run database migrations
 - `bun run db:studio`: Open database studio UI
 - `bun run check`: Run Oxlint and Oxfmt
+
+
+## Notes on deploying
+
+Apply the `bun db:migrate` as it have special migration SQL data and not the `bun db:push`
