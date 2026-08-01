@@ -1,0 +1,67 @@
+{
+    cache {
+        stale 500s
+    }
+    encode zstd gzip
+}
+
+api.*:80 {
+    # Health check
+    respond /health "healthy" 200
+
+    reverse_proxy server:3000
+}
+
+martin.*:80 {
+    # Health check
+    respond /health "healthy" 200
+
+    # OPTIONS preflight for CORS on tile endpoints
+    @options {
+        method OPTIONS
+        path /tiles/*
+    }
+    header @options {
+        Access-Control-Allow-Origin "*"
+        Access-Control-Allow-Methods "GET, OPTIONS"
+        Access-Control-Allow-Headers "DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range"
+    }
+    respond @options 204
+
+    # Low zoom tiles (0-12): 7-day cache
+    @tiles_low {
+        path_regexp ^/tiles/([^/]+)/(1[0-2]|[0-9])/([0-9]+)/([0-9]+)
+    }
+    route @tiles_low {
+        header {
+            Access-Control-Allow-Origin "*"
+            Access-Control-Allow-Methods "GET, OPTIONS"
+            Access-Control-Allow-Headers "DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range"
+            X-Cache-Zoom-TTL "604800s (7-days)"
+        }
+        cache {
+            ttl 604800s
+        }
+        reverse_proxy martin:3001
+    }
+
+    # High zoom tiles (13-30): 1-day cache
+    @tiles_high {
+        path_regexp ^/tiles/([^/]+)/(1[3-9]|2[0-9]|30)/([0-9]+)/([0-9]+)
+    }
+    route @tiles_high {
+        header {
+            Access-Control-Allow-Origin "*"
+            Access-Control-Allow-Methods "GET, OPTIONS"
+            Access-Control-Allow-Headers "DNT, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Range"
+            X-Cache-Zoom-TTL "86400s (1-day)"
+        }
+        cache {
+            ttl 86400s
+        }
+        reverse_proxy martin:3001
+    }
+
+    # Default: 404
+    respond / 404
+}

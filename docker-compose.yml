@@ -1,9 +1,7 @@
 services:
   server:
-    image: ghcr.io/reynadi531/goldeneye-ng-server:latest
+    image: ghcr.io/reynadi531/goldeneye-ng/server:main
     container_name: goldeneye-server
-    ports:
-      - "3000:3000"
     env_file:
       - .env.docker
     environment:
@@ -32,19 +30,21 @@ services:
       timeout: 5s
       retries: 5
 
-  nginx:
-    image: nginx:alpine
-    container_name: goldeneye-nginx
+  caddy:
+    build: ./caddy
+    container_name: goldeneye-caddy
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - nginx_cache:/var/cache/nginx/tiles
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_cache:/data/caddy/cache
     depends_on:
+      server:
+        condition: service_started
       martin:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exit 0"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:80/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -70,4 +70,4 @@ services:
 
 volumes:
   postgres_data:
-  nginx_cache:
+  caddy_cache:
